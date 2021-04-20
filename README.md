@@ -101,13 +101,133 @@ void tokenize() {
 
 ```java
 Token getToken() {
+    char ch;
     do {
         if (!charReader.hasMore()) {
             return new Token(null, TokenType.END_DOCUMENT);
         }
         ch = charReader.next();
     } while (isWhiteSpace(ch));
-    
+    // some others
 }
 ```
 
+`some others`  处的代码可以很容易猜到，就是为了解析 `token` 而存在的。对于较为平常的几个 `token`， 比如：花括号，中括号，分隔符，我们可以直接将它们作为 `Token` 对象返回。而对于如字符串、布尔值、数字、空值，我们需要进行解析再作为 `Token` 返回。
+
+```java
+// some others处的代码
+switch (ch) {
+    case '{':
+        return new Token(TokenType.BEGIN_OBJECT, String.valueOf(ch));
+    case '}':
+        return new Token(TokenType.END_OBJECT, String.valueOf(ch));
+    case '[':
+        return new Token(TokenType.BEGIN_ARRAY, String.valueOf(ch));
+    case ']':
+        return new Token(TokenType.END_ARRAY, String.valueOf(ch));
+    case ',':
+        return new Token(TokenType.SEP_COMMA, String.valueOf(ch));
+    case ':':
+        return new Token(TokenType.SEP_COLON, String.valueOf(ch));
+    case 'n':
+        return readNull();
+    case 't':
+    case 'f':
+        return readBoolean();
+    case '"':
+        return readString();
+    case '-':
+        return readNumber(); // 读取到了负数
+}
+if (Character.isDigit(ch)) {
+    return readNumber(); // 读取的是正数
+}
+```
+
+#### readNull
+
+当 `JSON` 为空时，我们会直接使用 `null`，所以，对 `null` 的解析比较简单，只要保证每个字符符合就行。这里要注意的是，我们只有读取到了第一个 `n` 才会进入这个 `readNull` 方法，所以解析时保证 `ull` 三部分符合就行。
+
+```java
+private Token readNull() throws IOException {
+    if (!(charReader.next() == 'u' && charReader.next() == 'l' && charReader.next() == 'l')) {
+        throw new JSONParseException("Invalid json string");
+    }
+    return new Token(TokenType.NULL, "null");
+}
+```
+
+#### readBoolean
+
+进入该方法时，我们已经读取了 `t` 或者 `f` 这两个字符，所以我们需要先判断读取的是哪个字符，再用上面同样的方法对后面的字符进行解析。
+
+```java
+private Token readBoolean() throws IOException {
+    if (charReader.peek() == 't') {
+        if (!(charReader.next() == 'r' && charReader.next() == 'u' && charReader.next() == 'e')) {
+            throw new JSONParseException("Invalid json string");
+        }
+        return new Token(TokenType.BOOLEAN, "true");
+    } else {
+        if (!(charReader.next() == 'a' && charReader.next() == 'l'
+              && charReader.next() == 's' && charReader.next() == 'e')) {
+            throw new JSONParseException("Invalid json string");
+        }
+        return new Token(TokenType.BOOLEAN, "false");
+    }
+}
+```
+
+**小结**
+
+可以看出，解析这两类字符时，我们用到了 `charReader` 的 `peek` 和 `next` 方法，它方便了我们对字符的提取。这就是之前封装了一个工具类 `CharReader` 的原因。
+
+#### readString
+
+对于字符串类型的 `token` ，解析起来比上面两种稍微复杂一些。这里大概列出解析时的逻辑：
+
+读取到了第一个 `"` ，进入该方法
+
+1. 读取到的为 `"` ，直接返回，此时 `Token` 的 `value` 为 `""`。
+2. 读取到的为 `\r` 或者 `\n` ，则抛出异常，说明格式不合法。
+3. 读取到的为 `\` ，说明后面应该出现转义字符。
+   * 如果不是转义字符，则直接抛出异常。
+   * 如果符合转义字符，则读取该字符。
+     * 判断该字符是否为 `u` ，如果是，则进行`UTF-8`编码字符解析。
+4. 读取到的为普通字符，直接读取即可。
+
+```java
+private Token readString() throws IOException {
+    StringBuilder builder = new StringBuilder();
+    while (true) {
+        char ch = charReader.next();
+        if (ch == '\\') { // 如果读取到待转义的字符
+            ch =  charReader.next(); // 获取这个可能符合规则的转义字符
+            if (!isEscape(ch)) {
+                throw new JSONParseException("Invalid escape character");
+            }
+            builder.append('\\');
+            builder.append(ch);
+            if (ch == 'u') { // 表示使用的是 UTF-8 转义
+                for (int i = 0; i < 4; i++) {
+                    ch = charReader.next();
+                    if (!isHex(ch)) {
+                        throw new JSONParseException("Invalid hex character");
+                    }
+                    builder.append(ch);
+                }
+            }
+        } else if (ch == '\"') { // 读取到了下一个 " 表示是字符串的末尾
+            return new Token(TokenType.STRING, builder.toString());
+        } else if (ch == '\r' || ch == '\n') { // 只存在一个 " 后进行了回车换行，属于不规范的格式
+            throw new JSONParseException("Invalid character");
+        } else { // 普通字符，直接添加即可
+            builder.append(ch);
+        }
+    }
+}
+```
+
+#### readNumber
+
+依照 `JSON` 规范，合格的数字格式是以 `-` 开头或者直接以数字开头。所以进入此方法时，也只有这两种可能。

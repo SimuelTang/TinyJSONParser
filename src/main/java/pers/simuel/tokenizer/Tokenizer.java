@@ -223,13 +223,11 @@ public class Tokenizer {
         while (true) {
             char ch = charReader.next();
             if (ch == '\\') { // 如果读取到待转义的字符
-                if (!isEscape()) {
+                //获取这个可能的转义字符
+                ch =  charReader.next();
+                if (!isEscape(ch)) {
                     throw new JSONParseException("Invalid escape character");
                 }
-                // 通过 isEscape() 判断了接下来的字符的确可以转义后，我们就直接将这个转义字符
-                // 添加到 builder。注意：这时必须依赖 peek() 才能获取转义符，因为 isEscape()
-                // 中我们进行了一次 next() 获取转义符来进行判断
-                ch = charReader.peek();
                 builder.append('\\');
                 builder.append(ch);
                 if (ch == 'u') { // 表示使用的是 UTF-8 转义
@@ -295,8 +293,7 @@ public class Tokenizer {
      * @return
      * @throws IOException
      */
-    private boolean isEscape() throws IOException {
-        char ch = charReader.next();
+    private boolean isEscape(char ch) throws IOException {
         return (ch == '"' || ch == '\\' || ch == 'u' || ch == 'r'
                 || ch == 'n' || ch == 'b' || ch == 't' || ch == 'f');
     }
