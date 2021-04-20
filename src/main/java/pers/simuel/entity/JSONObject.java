@@ -14,7 +14,7 @@ public class JSONObject {
     private final Map<String, Object> map;
 
     {
-        map = new LinkedHashMap<>();
+        map = new LinkedHashMap<String, Object>();
     }
 
     public void put(String key, Object value) {
@@ -22,7 +22,7 @@ public class JSONObject {
     }
 
     public List<Map.Entry<String, Object>> getAllPairs() {
-        return new ArrayList<>(map.entrySet());
+        return new ArrayList<Map.Entry<String, Object>>(map.entrySet());
     }
 
     @Override

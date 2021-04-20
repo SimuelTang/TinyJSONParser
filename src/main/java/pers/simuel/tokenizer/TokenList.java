@@ -12,7 +12,7 @@ public class TokenList {
     private final List<Token> tokens;
 
     {
-        tokens = new ArrayList<>();
+        tokens = new ArrayList<Token>();
     }
 
     private int pos = 0;

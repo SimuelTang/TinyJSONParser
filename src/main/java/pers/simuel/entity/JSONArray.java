@@ -14,7 +14,7 @@ public class JSONArray {
     List<Object> list;
 
     {
-        list = new ArrayList<>();
+        list = new ArrayList<Object>();
     }
 
     public void add(Object obj) {

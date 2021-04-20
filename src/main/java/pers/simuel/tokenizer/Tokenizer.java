@@ -34,7 +34,7 @@ public class Tokenizer {
         tokens = new TokenList();
         Token token;
         do {
-            token = startProcess();
+            token = getToken();
             tokens.add(token);
         } while (token != null && token.getTokenType() != TokenType.END_DOCUMENT);
 
@@ -49,7 +49,7 @@ public class Tokenizer {
      *
      * @return
      */
-    private Token startProcess() throws IOException {
+    private Token getToken() throws IOException {
         char ch;
         // 找到第一个非空格符进行解析
         do {
