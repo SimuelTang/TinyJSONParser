@@ -230,4 +230,129 @@ private Token readString() throws IOException {
 
 #### readNumber
 
-依照 `JSON` 规范，合格的数字格式是以 `-` 开头或者直接以数字开头。所以进入此方法时，也只有这两种可能。
+依照 `JSON` 规范，合格的数字格式是以 `-` 开头或者直接以数字开头。所以进入此方法时，必定是这两者情况中的一种。
+
+1. 读取到了 `-` 而进入此方法。
+   * 将 `-` 添加到 `builder` 后继续读取数字。
+2. 读取到了数字而进入此方法。
+   * 如果数字是0，则直接进行小数部分的处理。
+   * 如果数字不是0，则直接读取直到遇到非数字字符。
+
+```java
+public Token readNumber() {
+    char ch = charReader.peek();
+    StringBuilder sb = new StringBuilder();
+    if (ch == '-') {
+        ...
+    }
+    if (ch == '0') {
+        ...
+    } else if (isDigit(ch)) {
+        ...
+    } else {
+       	...
+    }
+    return new Token(TokenType.NUMBER, sb.toString());
+} 
+```
+
+##### 读取剩余数字
+
+第一个 `if` 的处理比较简单，添加完负号后正常往后读取数字即可。
+
+第二个 `if` 开始可能会产生不同的分支。如果读取到的是数字 `0` ，则进行小数处理；如果是数字，则继续读取剩余数字；如果是其他符号，则直接抛出异常即可。
+
+```java
+private void ReadRemainNumber(StringBuilder sb) throws IOException {
+    char ch = charReader.peek(); // 读取当前数字
+    do {
+        sb.append(ch);
+        ch = charReader.next();
+    } while (isDigit(ch));
+    if (ch != (char) -1) { // 判断结束原因
+        charReader.back(); // 不是因为读完而退出
+        sb.append(readFracOrExp());
+    }
+}
+```
+
+##### 处理小数或者科学记数法
+
+在第二个 `if` 处，如果读取到了 `0` ，则可能要处理小数；在读取剩余数字处，如果读取结束了，则也有可能要处理小数或者处理科学记数法。所以，这个方法充当了路由的作用，判断是处理小数还是处理科学记数法。
+
+```java
+private String readFracOrExp() {
+    StringBuilder sb = new StringBuilder();
+    char ch = charReader.next(); //注意这里使用的是next
+    if (ch == '.') {
+        ...
+    } else if (isExp(ch)) {
+        ...
+    } else { // 这里可能是因为数字不规范导致的，比如：0018；也能是读取到了下一类数据，比如："age":0, "name":"xxx"
+        //回退
+        ...
+    }
+    return sb.toString();
+}
+```
+
+##### 处理小数部分
+
+小数部分的处理：因为进入该方法前小数点已经被读取，所以按照正常的数字处理步骤进行即可。
+
+```java
+private String readFrac() {
+    char ch = charReader.next(); //小数的第一位
+    if (!isDigit(ch)) {...}
+    StringBuilder sb = new StringBuilder();
+    do {
+        sb.append(ch);
+        ch = charReader.next();
+    } while (isDigig(ch));
+    // 判断终止原因
+    if (isExp(ch)) {
+        readExp();
+    } else {
+        //回退
+        ...
+    }
+}
+```
+
+##### 处理科学记数法
+
+科学记数法处理同上，进入该方法时，`e/E` 已经被读取，所以判断完符号后按照正常处理数字的流程即可。
+
+```java
+private String readExp() throws IOException {
+    StringBuilder sb = new StringBuilder();
+    char ch = charReader.next();
+    if (ch == '+' || ch == '-') {
+        sb.append(ch);
+        ch = charReader.next();
+        if (isDigit(ch)) {
+            do {
+                sb.append(ch);
+                ch = charReader.next();
+            } while (isDigit(ch));
+            if (ch != (char) -1) { // 说明可能是因为读取到了其他数据的开始部分
+                charReader.back();
+            }
+        } else {
+            throw new JSONParseException("Invalid exp");
+        }
+    } else {
+        throw new JSONParseException("Invalid exp");
+    }
+    return sb.toString();
+}
+```
+
+
+
+
+
+
+
+
+
