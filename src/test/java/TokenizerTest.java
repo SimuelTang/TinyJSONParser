@@ -16,7 +16,7 @@ public class TokenizerTest {
     @Test
     public void readObjectTest() {
         Tokenizer tokenizer = new Tokenizer();
-        CharReader reader = new CharReader(new StringReader("{}"));
+        CharReader reader = new CharReader(new StringReader("{\"age\":0018}"));
         TokenList tokens = null;
         try {
             tokens = tokenizer.tokenize(reader);

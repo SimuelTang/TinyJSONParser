@@ -29,7 +29,7 @@ public class ParserTest {
         Parser parser = new Parser();
         Tokenizer tokenizer = new Tokenizer();
         TokenList tokens = tokenizer.tokenize(new CharReader
-                (new StringReader("{\"age\":18}")));
+                (new StringReader("{\"age\":0018}")));
         JSONObject jsonObject = (JSONObject) parser.parse(tokens);
         System.out.println(jsonObject);
     }

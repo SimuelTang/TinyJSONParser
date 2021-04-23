@@ -11,7 +11,7 @@ import java.io.IOException;
  * @Time 13:48
  */
 public class Tokenizer {
-    
+
     private CharReader charReader;
     private TokenList tokens;
 
@@ -39,9 +39,9 @@ public class Tokenizer {
         } while (token != null && token.getTokenType() != TokenType.END_DOCUMENT);
 
         // TODO:
-//        if (token == null) {
-//            
-//        }
+        // if (token == null) {
+        //
+        // }
     }
 
     /**
@@ -60,34 +60,33 @@ public class Tokenizer {
             ch = charReader.next();
         } while (isWhiteSpace(ch));
         switch (ch) {
-            case '{':
-                return new Token(TokenType.BEGIN_OBJECT, String.valueOf(ch));
-            case '}':
-                return new Token(TokenType.END_OBJECT, String.valueOf(ch));
-            case '[':
-                return new Token(TokenType.BEGIN_ARRAY, String.valueOf(ch));
-            case ']':
-                return new Token(TokenType.END_ARRAY, String.valueOf(ch));
-            case ',':
-                return new Token(TokenType.SEP_COMMA, String.valueOf(ch));
-            case ':':
-                return new Token(TokenType.SEP_COLON, String.valueOf(ch));
-            case 'n':
-                return readNull();
-            case 't':
-            case 'f':
-                return readBoolean();
-            case '"':
-                return readString();
-            case '-':
-                return readNumber(); // 读取到了负数
+        case '{':
+            return new Token(TokenType.BEGIN_OBJECT, String.valueOf(ch));
+        case '}':
+            return new Token(TokenType.END_OBJECT, String.valueOf(ch));
+        case '[':
+            return new Token(TokenType.BEGIN_ARRAY, String.valueOf(ch));
+        case ']':
+            return new Token(TokenType.END_ARRAY, String.valueOf(ch));
+        case ',':
+            return new Token(TokenType.SEP_COMMA, String.valueOf(ch));
+        case ':':
+            return new Token(TokenType.SEP_COLON, String.valueOf(ch));
+        case 'n':
+            return readNull();
+        case 't':
+        case 'f':
+            return readBoolean();
+        case '"':
+            return readString();
+        case '-':
+            return readNumber(); // 读取到了负数
         }
         if (Character.isDigit(ch)) {
             return readNumber(); // 读取的是正数
         }
         throw new JSONParseException("Invalid character");
     }
-
 
     /**
      * 当读取到了负号或者某一个数字时会进入该方法，表示即将处理数字信息
@@ -106,8 +105,8 @@ public class Tokenizer {
         }
         if (ch == '0') { // 如果这次字符为0，说明可能有小数要处理
             builder.append(ch);
-            builder.append(readFracAndExp());
-        } else if (Character.isDigit(ch)) { // 如果负号后面是数字，就正常处理
+            builder.append(readFracOrExp());
+        } else if (Character.isDigit(ch)) { // 如果负号后面是数字或者本身就是数字，就正常处理
             ReadRemainNumber(builder);
         } else { // 负号后面出现了非法符号
             throw new JSONParseException("Invalid minus number");
@@ -123,22 +122,19 @@ public class Tokenizer {
             sb.append(ch);
             ch = charReader.next();
         } while (isDigit(ch));
-        // 退出循环的愿意有两个：1.读取到的是小数点，它不是数字导致的退出 2.已经读取完毕
+        // 退出循环的原因有两个：1.读取到的是小数点，它不是数字导致的退出 2.已经读取完毕
         if (ch != (char) -1) { // 因小数点而退出的话，我们要另外处理小数后面的数字
             charReader.back();
-            sb.append(readFracAndExp());
+            sb.append(readFracOrExp());
         }
     }
 
     /**
-     * 进入该方法的可能原因：
-     * 1. 遇到了小数点
-     * 2. 遇到了科学记数法
-     * 3. 数字本身就是0
+     * 进入该方法的可能原因： 1. 遇到了小数点 2. 遇到了科学记数法 3. 数字本身就是0
      *
      * @return
      */
-    private String readFracAndExp() throws IOException {
+    private String readFracOrExp() throws IOException {
         StringBuilder sb = new StringBuilder();
         char ch = charReader.next();
         if (ch == '.') { // 处理小数
@@ -153,7 +149,7 @@ public class Tokenizer {
         }
         return sb.toString();
     }
-    
+
     /**
      * 进入这个方法时，e/E 已经被添加了，所以直接处理数字即可
      *
@@ -223,8 +219,8 @@ public class Tokenizer {
         while (true) {
             char ch = charReader.next();
             if (ch == '\\') { // 如果读取到待转义的字符
-                //获取这个可能的转义字符
-                ch =  charReader.next();
+                // 获取这个可能的转义字符
+                ch = charReader.next();
                 if (!isEscape(ch)) {
                     throw new JSONParseException("Invalid escape character");
                 }
@@ -259,8 +255,8 @@ public class Tokenizer {
             }
             return new Token(TokenType.BOOLEAN, "true");
         } else {
-            if (!(charReader.next() == 'a' && charReader.next() == 'l'
-                    && charReader.next() == 's' && charReader.next() == 'e')) {
+            if (!(charReader.next() == 'a' && charReader.next() == 'l' && charReader.next() == 's'
+                    && charReader.next() == 'e')) {
                 throw new JSONParseException("Invalid json string");
             }
             return new Token(TokenType.BOOLEAN, "false");
@@ -279,8 +275,7 @@ public class Tokenizer {
     }
 
     private boolean isHex(char ch) {
-        return ((ch >= '0' && ch <= '9') || ('a' <= ch && ch <= 'f')
-                || ('A' <= ch && ch <= 'F'));
+        return ((ch >= '0' && ch <= '9') || ('a' <= ch && ch <= 'f') || ('A' <= ch && ch <= 'F'));
     }
 
     private boolean isDigit(char ch) {
@@ -294,8 +289,7 @@ public class Tokenizer {
      * @throws IOException
      */
     private boolean isEscape(char ch) throws IOException {
-        return (ch == '"' || ch == '\\' || ch == 'u' || ch == 'r'
-                || ch == 'n' || ch == 'b' || ch == 't' || ch == 'f');
+        return (ch == '"' || ch == '\\' || ch == 'u' || ch == 'r' || ch == 'n' || ch == 'b' || ch == 't' || ch == 'f');
     }
 
     /**
