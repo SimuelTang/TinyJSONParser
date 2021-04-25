@@ -462,6 +462,7 @@ END_OBJECT_TOKEN & expectedTokenType = 2
 1. 设置期待的 `TokenType` 
 2. 读取当前 `Token` 
 3. 根据 `Token` 的类型具体解析
+4. 
 
 
 
