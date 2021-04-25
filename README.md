@@ -348,7 +348,39 @@ private String readExp() throws IOException {
 }
 ```
 
+### 小结 1
 
+到这部分的时候，可以对之前的内容进行 `UT` ，确保出现词法错误时可以抛出异常。
+
+**NOTE：**因为这部分仅仅是对词法进行分析，如果出现了语义错误，则无法检测到。比如：`{"age":0018}` 。此时值得部分会正常解析出 `0` `0` `18` 三个数字。
+
+### JSONParser
+
+从这部分开始，我们将对刚刚解析出的 `Token` 进行语义分析。最后获得符合规范得 `JSON` 序列。
+
+```java
+public class JSONParser {
+    private final Tokenizer tokenizer;
+    private final Parser parser;
+    
+    {
+        tokenizer = new Tokenizer();
+        parser = new Parser();
+    }
+
+    public Object fromJson(String json) throws IOException {
+        CharReader charReader = new CharReader(new StringReader(json));
+        TokenList tokens = tokenizer.tokenize(charReader);
+        return parser.parse(tokens);
+    }
+}
+```
+
+暴露出去的方法为 `fromJSON` ，它的参数是一串未经过验证的字符串。
+
+## Parser
+
+`JSONParser`  是属于工具类，它提供对外的方法来判断字符串的合法性。其内部有一个具体的解析类的对象。
 
 
 
