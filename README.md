@@ -382,6 +382,111 @@ public class JSONParser {
 
 `JSONParser`  是属于工具类，它提供对外的方法来判断字符串的合法性。其内部有一个具体的解析类的对象。
 
+解析时，我们只有两种对象需要解析，一种是 `JSON Object `，它以 `{}` 的格式呈现；还有一种是 `Array Object` ，以 `[]` 的格式呈现。 
+
+所以，具体解析时，我们需要读取 `Tokens` 数组，通过第一个 `Token` 的类型，判断我们要解析的是哪种对象。
+
+```java
+public Object parse() {
+    Token token = tokens.next();
+    if (token == null) {
+        return new JSONObject();
+    } else if (token.getTokenType() == TokenType.BEGIN_OBJECT) {
+        return parseJsonObject();
+    } else if (token.getTokenType() == TokenType.BEGIN_ARRAY) {
+        return parseJsonArray();
+    } else {
+        throw new JSONParseException("Parse error, invalid Token, neither object nor array");
+    }
+}
+```
+
+#### parseJSONObject
+
+每次解析 `Token` 时，一旦遇到了不符合语法要求的符号出现，则直接抛出异常，不用继续解析。所以，我们在每次解析前都要设置期待的 `expectedTokenType`。然后解析时，用这个`expectedTokenType` 和读取到的 `TokenType` 进行对比，如果不符合要求，则停止解析。
+
+**Tip**
+
+常规情况下，判断 `expectedTokenType` 需要对各种条件进行判断，然后添加可能存在的各种类型。比如：
+
+```java
+if (currTokenType == BEGIN_OBJECT_TOKEN) {
+    expectedTokenType.add(STRING_TOKEN);
+    expectedTokenType.add(END_OBJECT);
+}
+```
+
+之后，当我们检验的时候，需要对所有类型进行遍历，找是否有不符合条件的那个。
+
+这样写没问题，也能满足这个解析器的要求。但是为了简化代码，这里使用了一个技巧。
+
+```java
+if (currTokenType == BEGIN_OBJECT_TOKEN) {
+    expectedTokenType =  STRING_TOKEN | END_OBJECT_TOKEN;
+}
+```
+
+各个 `Token类型` ，我们都给它赋予了不同的整数值，且这个整数值是2的整数次幂。所以，通过 `| ` 运算，二进制位为 `1` 的位置是我们期待的 `TokenType` 。之后，通过 `&` 运算，可以判断这个 `TokenType` 是否符合我们的要求。
+
+举例来说
+
+```java
+BEGIN_OBJECT_TOKEN = 1;(00000001)
+END_OBJECT_TOKEN = 2; (00000010)
+BEGIN_ARRAY_TOKEN = 4; (00000100)
+STRING_TOKEN = 64;(01000000)
+```
+
+如果我们读取到的是 `BEGIN_OBJECT_TOKEN` ，则我们期待的字符类型为：`END_OBJECT_TOKEN` 或者 `STRING_TOKEN`，此时，`expectedTokenType` 为：
+
+```java
+END_OBJECT_TOKEN | STRING_TOKEN = 01000010
+```
+
+如果后续读取到的 `Token` 为 `BEGIN_ARRAY_TOKEN` ，那么进行 `&` 运算时，
+
+```java
+BEGIN_ARRAY_TOKEN & expectedTokenType = 0
+```
+
+而如果读取的正是我们想要的 `Token` ，则：
+
+```java
+END_OBJECT_TOKEN & expectedTokenType = 2
+```
+
+可以看到，信息被保留下来了且简化了代码的编写。
+
+**具体的解析过程**
+
+1. 设置期待的 `TokenType` 
+2. 读取当前 `Token` 
+3. 根据 `Token` 的类型具体解析
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
