@@ -37,7 +37,7 @@ public class Parser {
         if (token == null) {
             return new JSONObject();
         } else if (token.getTokenType() == TokenType.BEGIN_OBJECT) {
-            return parseJsonObject();
+            return parseJSONObject();
         } else if (token.getTokenType() == TokenType.BEGIN_ARRAY) {
             return parseJsonArray();
         } else {
@@ -49,8 +49,8 @@ public class Parser {
         // 待返回的数组对象
         JSONArray jsonArray = new JSONArray();
         // 以[开头，可能存在的token
-        int expectedToken = BEGIN_ARRAY_TOKEN | END_ARRAY_TOKEN | BEGIN_OBJECT_TOKEN | NULL_TOKEN
-                | NUMBER_TOKEN | BOOLEAN_TOKEN | STRING_TOKEN;
+        int expectedToken = BEGIN_ARRAY_TOKEN | END_ARRAY_TOKEN | BEGIN_OBJECT_TOKEN | NULL_TOKEN | NUMBER_TOKEN
+                | BOOLEAN_TOKEN | STRING_TOKEN;
         while (tokens.hasMore()) {
             Token token = tokens.next();
             TokenType tokenType = token.getTokenType();
@@ -58,7 +58,7 @@ public class Parser {
             switch (tokenType) {
                 case BEGIN_OBJECT:
                     checkExpectedToken(expectedToken, tokenType);
-                    jsonArray.add(parseJsonObject());
+                    jsonArray.add(parseJSONObject());
                     expectedToken = SEP_COMMA_TOKEN | END_ARRAY_TOKEN;
                     break;
                 case BEGIN_ARRAY:
@@ -101,8 +101,8 @@ public class Parser {
                     break;
                 case SEP_COMMA:
                     checkExpectedToken(expectedToken, tokenType);
-                    expectedToken = BEGIN_ARRAY_TOKEN | BEGIN_OBJECT_TOKEN | NULL_TOKEN
-                            | NUMBER_TOKEN | BOOLEAN_TOKEN | STRING_TOKEN;
+                    expectedToken = BEGIN_ARRAY_TOKEN | BEGIN_OBJECT_TOKEN | NULL_TOKEN | NUMBER_TOKEN | BOOLEAN_TOKEN
+                            | STRING_TOKEN;
                     break;
                 default:
                     throw new JSONParseException("Unexpected Token.");
@@ -116,7 +116,7 @@ public class Parser {
      *
      * @return
      */
-    private Object parseJsonObject() {
+    private Object parseJSONObject() {
         // 待返回的类型
         JSONObject jsonObject = new JSONObject();
         // 设置期待的token type
@@ -133,11 +133,11 @@ public class Parser {
             String tokenValue = token.getValue();
             switch (tokenType) {
                 case BEGIN_OBJECT:
-                    // 如果是对象类型，则递归进行解析，同时，可以确定的是：
+                    // 如果又是对象类型，则递归进行解析，同时，可以确定的是：
                     // 1.一定已经有了一个key，否则已经抛出异常了
                     // 2.递归解析完成后，期待的token为逗号或者右花括号}
                     checkExpectedToken(expectedToken, tokenType);
-                    jsonObject.put(key, parseJsonObject());
+                    jsonObject.put(key, parseJSONObject());
                     expectedToken = SEP_COMMA_TOKEN | END_OBJECT_TOKEN;
                     break;
                 case END_OBJECT:
@@ -187,8 +187,8 @@ public class Parser {
                     break;
                 case SEP_COLON:
                     checkExpectedToken(expectedToken, tokenType);
-                    expectedToken = NULL_TOKEN | NUMBER_TOKEN | BOOLEAN_TOKEN | STRING_TOKEN
-                            | BEGIN_OBJECT_TOKEN | BEGIN_ARRAY_TOKEN;
+                    expectedToken = NULL_TOKEN | NUMBER_TOKEN | BOOLEAN_TOKEN | STRING_TOKEN | BEGIN_OBJECT_TOKEN
+                            | BEGIN_ARRAY_TOKEN;
                     break;
                 case SEP_COMMA:
                     checkExpectedToken(expectedToken, tokenType);

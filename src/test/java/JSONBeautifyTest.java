@@ -13,7 +13,7 @@ public class JSONBeautifyTest {
     public void beautifyJSONTest01() throws Exception {
         String json = "{\"foods\":[{\"name\":\"fish\"}]}";
         JSONParser parser = new JSONParser();
-        Object ret = parser.fromJson(json);
+        Object ret = parser.fromJSON(json);
         System.out.println(ret);
     }
     
@@ -25,7 +25,7 @@ public class JSONBeautifyTest {
         System.out.println("\n");
         System.out.println("美化后的 JSON 字符串：");
         JSONParser jsonParser = new JSONParser();
-        JSONObject drj = (JSONObject) jsonParser.fromJson(json);
+        JSONObject drj = (JSONObject) jsonParser.fromJSON(json);
         System.out.println(drj);
     }
 }

@@ -21,7 +21,7 @@ public class JSONParser {
         parser = new Parser();
     }
 
-    public Object fromJson(String json) throws IOException {
+    public Object fromJSON(String json) throws IOException {
         CharReader charReader = new CharReader(new StringReader(json));
         TokenList tokens = tokenizer.tokenize(charReader);
         return parser.parse(tokens);

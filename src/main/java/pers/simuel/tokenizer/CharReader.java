@@ -18,13 +18,12 @@ public class CharReader {
     // 数据大小
     private int size;
 
-
     public CharReader(Reader reader) {
         // 单次最大读取数据大小
         int BUFFER_SIZE = 1024;
         this.buffer = new char[BUFFER_SIZE];
         this.reader = reader;
-        try {
+        try {   
             resize();
         } catch (Exception e) {
             e.printStackTrace();

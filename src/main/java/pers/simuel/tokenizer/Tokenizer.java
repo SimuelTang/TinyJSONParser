@@ -109,7 +109,7 @@ public class Tokenizer {
         } else if (Character.isDigit(ch)) { // 如果负号后面是数字或者本身就是数字，就正常处理
             ReadRemainNumber(builder);
         } else { // 负号后面出现了非法符号
-            throw new JSONParseException("Invalid minus number");
+            throw new JSONParseException("Invalid number");
         }
         return new Token(TokenType.NUMBER, builder.toString());
     }

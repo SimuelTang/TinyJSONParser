@@ -112,5 +112,4 @@ public class JSONBeautifyUtil {
         }
         return sb.toString();
     }
-
 }
