@@ -2,7 +2,7 @@
 
 ## 使用方式
 
-`pers.simuel.parser.JSONParser` 类对外提供了一个 `API`： `fromJSON` 。这个接口的参数为字符串类型，返回值为检验且格式化后的 `JSON` 字符串。
+`pers.simuel.parJSONParser` 类对外提供了一个 `API`： `fromJSON` 。这个接口的参数为字符串类型，返回值为检验且格式化后的 `JSON` 字符串。
 
 ```java
 public class Main {
@@ -28,22 +28,16 @@ public class JSONParserTest {
 
 输出结果如下：
 
-> {
->
->   "foods":
->
->   [
->
-> ​    18,
->
-> ​    true,
->
-> ​    {
->
-> ​      "calories":200
->
-> ​    }
->
->   ] 
->
-> }
+```json
+{
+  "foods":
+  [
+    18,
+    true,
+    {
+      "calories":200
+    }
+  ] 
+}
+```
+
